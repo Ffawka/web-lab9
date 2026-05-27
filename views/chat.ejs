@@ -200,7 +200,7 @@
     socket.on('game_end', (data) => {
         if (data.winner) {
             document.getElementById('gameInfo').innerHTML = `Игра закончена! Победил ${data.winner}!`;
-            addMessage('game', null, `ПОБЕДА! Выиграл ${data.winner}!`);
+            addMessage('game', null, `Победа! Выиграл ${data.winner}!`);
         } else {
             document.getElementById('gameInfo').innerHTML = `Игра остановлена`;
         }
