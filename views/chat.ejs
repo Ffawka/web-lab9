@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Socket.IO Chat</title>
+    <style>
+        #chat-window { display: none; }
+        #messages { list-style-type: none; height: 300px; overflow-y: scroll; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <!-- Форма авторизации -->
+    <div id="auth">
+        <input id="username-input" placeholder="Введите имя..." />
+        <button onclick="joinChat()">Войти</button>
+    </div>
+
+    <!-- Окно чата -->
+    <div id="chat-window">
+        <ul id="messages"></ul>
+        <form id="form" action="">
+            <input id="input" autocomplete="off" /><button>Отправить</button>
+        </form>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const authDiv = document.getElementById('auth');
+        const chatDiv = document.getElementById('chat-window');
+
+        function joinChat() {
+            const name = document.getElementById('username-input').value;
+            if (name) {
+                socket.emit('set username', name);
+                authDiv.style.display = 'none';
+                chatDiv.style.display = 'block';
+            }
+        }
+
+        document.getElementById('form').onsubmit = (e) => {
+            e.preventDefault();
+            const input = document.getElementById('input');
+            if (input.value) {
+                socket.emit('chat message', input.value);
+                input.value = '';
+            }
+        };
+
+        socket.on('chat message', (data) => {
+            const item = document.createElement('li');
+            item.textContent = `${data.username}: ${data.text}`;
+            document.getElementById('messages').appendChild(item);
+        });
+
+        socket.on('user joined', (data) => {
+            const item = document.createElement('li');
+            item.style.color = 'green';
+            item.textContent = `${data.username} присоединился к чату`;
+            document.getElementById('messages').appendChild(item);
+        });
+    </script>
+</body>
+</html>
