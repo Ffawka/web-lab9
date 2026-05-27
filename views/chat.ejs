@@ -1,37 +1,63 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Книга тренажёров</title>
-    <link rel="stylesheet" href="/style.css">
+    <title>Socket.IO Chat</title>
+    <style>
+        #chat-window { display: none; }
+        #messages { list-style-type: none; height: 300px; overflow-y: scroll; border: 1px solid #ccc; }
+    </style>
 </head>
 <body>
-    <header class="navbar">
-        <span>Мои тренажеры</span>
-        <a href="/chat">Перейти в чат</a>
-        <span class="about">О нас</span>
-    </header>
+    <!-- Форма авторизации -->
+    <div id="auth">
+        <input id="username-input" placeholder="Введите имя..." />
+        <button onclick="joinChat()">Войти</button>
+    </div>
 
-    <main class="container">
-        <button class="hero-btn" onclick="showAddForm()">
-            Добавить тренажер
-        </button>
- 
-        <div class="controls">
-            <input type="text" id="searchInput" placeholder="Поиск тренажера..." oninput="applyFilters()">
-            
-            <select id="sortSelect" onchange="applyFilters()">
-                <option value="">Без сортировки</option>
-                <option value="asc">Название (А-Я)</option>
-                <option value="desc">Название (Я-А)</option>
-            </select>
-        </div>
+    <!-- Окно чата -->
+    <div id="chat-window">
+        <ul id="messages"></ul>
+        <form id="form" action="">
+            <input id="input" autocomplete="off" /><button>Отправить</button>
+        </form>
+    </div>
 
-        <div id="pagination" class="pagination-container"></div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const authDiv = document.getElementById('auth');
+        const chatDiv = document.getElementById('chat-window');
 
-        <div id="recipe-list"></div>
-    </main>
+        function joinChat() {
+            const name = document.getElementById('username-input').value;
+            if (name) {
+                socket.emit('set username', name);
+                authDiv.style.display = 'none';
+                chatDiv.style.display = 'block';
+            }
+        }
 
-    <script src="/app.js"></script>
+        document.getElementById('form').onsubmit = (e) => {
+            e.preventDefault();
+            const input = document.getElementById('input');
+            if (input.value) {
+                socket.emit('chat message', input.value);
+                input.value = '';
+            }
+        };
+
+        socket.on('chat message', (data) => {
+            const item = document.createElement('li');
+            item.textContent = `${data.username}: ${data.text}`;
+            document.getElementById('messages').appendChild(item);
+        });
+
+        socket.on('user joined', (data) => {
+            const item = document.createElement('li');
+            item.style.color = 'green';
+            item.textContent = `${data.username} присоединился к чату`;
+            document.getElementById('messages').appendChild(item);
+        });
+    </script>
 </body>
 </html>
